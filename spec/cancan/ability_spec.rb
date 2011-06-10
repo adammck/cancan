@@ -347,6 +347,17 @@ describe CanCan::Ability do
     @ability.should have_raw_sql(:read, :foo)
   end
 
+  it "should raise access denied exception with message if specified" do
+    @ability.cannot :read, :foo, nil, "You didn't say the magic word!"
+    begin
+      @ability.authorize! :read, :foo
+    rescue CanCan::AccessDenied => e
+      e.message.should == "You didn't say the magic word!"
+    else
+      fail "Expected CanCan::AccessDenied exception to be raised"
+    end
+  end
+
   it "should raise access denied exception with default message if not specified" do
     begin
       @ability.authorize! :read, :foo

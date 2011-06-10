@@ -53,10 +53,8 @@ module CanCan
     #   end
     #
     # Also see the RSpec Matchers to aid in testing.
-    def can?(action, subject, *extra_args)
-      match = relevant_rules_for_match(action, subject).detect do |rule|
-        rule.matches_conditions?(action, subject, extra_args)
-      end
+    def can?(*args)
+      match = first_match(*args)
       match ? match.base_behavior : false
     end
 
@@ -121,8 +119,8 @@ module CanCan
     #     # check the database and return true/false
     #   end
     #
-    def can(action = nil, subject = nil, conditions = nil, &block)
-      rules << Rule.new(true, action, subject, conditions, block)
+    def can(action = nil, subject = nil, conditions = nil, message = nil, &block)
+      rules << Rule.new(true, action, subject, conditions, message, block)
     end
 
     # Defines an ability which cannot be done. Accepts the same arguments as "can".
@@ -137,8 +135,8 @@ module CanCan
     #     product.invisible?
     #   end
     #
-    def cannot(action = nil, subject = nil, conditions = nil, &block)
-      rules << Rule.new(false, action, subject, conditions, block)
+    def cannot(action = nil, subject = nil, conditions = nil, message = nil, &block)
+      rules << Rule.new(false, action, subject, conditions, message, block)
     end
 
     # Alias one or more actions into another one.
@@ -197,14 +195,20 @@ module CanCan
       if args.last.kind_of?(Hash) && args.last.has_key?(:message)
         message = args.pop[:message]
       end
-      if cannot?(action, subject, *args)
-        message ||= unauthorized_message(action, subject)
+
+      match = first_match(action, subject, *args)
+      can = match ? match.base_behavior : false
+
+      if not can
+        message ||= match.message if match
+        message ||= unauthorized_message(action, subject, *args)
         raise AccessDenied.new(message, action, subject)
       end
+
       subject
     end
 
-    def unauthorized_message(action, subject)
+    def unauthorized_message(action, subject, *args)
       keys = unauthorized_message_keys(action, subject)
       variables = {:action => action.to_s}
       variables[:subject] = (subject.class == Class ? subject : subject.class).to_s.underscore.humanize.downcase
@@ -284,6 +288,12 @@ module CanCan
         if rule.only_block?
           raise Error, "The accessible_by call cannot be used with a block 'can' definition. The SQL cannot be determined for #{action.inspect} #{subject.inspect}"
         end
+      end
+    end
+
+    def first_match(action, subject, *args)
+      relevant_rules_for_match(action, subject).detect do |rule|
+        rule.matches_conditions?(action, subject, args)
       end
     end
 
