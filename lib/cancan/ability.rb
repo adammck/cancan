@@ -119,8 +119,8 @@ module CanCan
     #     # check the database and return true/false
     #   end
     #
-    def can(action = nil, subject = nil, conditions = nil, message = nil, &block)
-      rules << Rule.new(true, action, subject, conditions, message, block)
+    def can(action = nil, subject = nil, conditions = nil, &block)
+      rules << Rule.new(true, action, subject, conditions, nil, block)
     end
 
     # Defines an ability which cannot be done. Accepts the same arguments as "can".
