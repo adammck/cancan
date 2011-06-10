@@ -369,6 +369,18 @@ describe CanCan::Ability do
     end
   end
 
+  it "should allow conditions to be ommitted when message is specified" do
+    @ability.cannot :cross, :bridge, "YOU SHALL NOT PASS!"
+
+    begin
+      @ability.authorize! :cross, :bridge
+    rescue CanCan::AccessDenied => e
+      e.message.should == "YOU SHALL NOT PASS!"
+    else
+      fail "Expected CanCan::AccessDenied exception to be raised"
+    end
+  end
+
   it "should determine model adapter class by asking AbstractAdapter" do
     model_class = Object.new
     adapter_class = Object.new

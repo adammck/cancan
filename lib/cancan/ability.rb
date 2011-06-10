@@ -136,6 +136,11 @@ module CanCan
     #   end
     #
     def cannot(action = nil, subject = nil, conditions = nil, message = nil, &block)
+      if message.nil? and conditions.kind_of?(String)
+        message = conditions
+        conditions = nil
+      end
+
       rules << Rule.new(false, action, subject, conditions, message, block)
     end
 
