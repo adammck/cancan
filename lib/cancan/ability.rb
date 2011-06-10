@@ -135,6 +135,28 @@ module CanCan
     #     product.invisible?
     #   end
     #
+    # In addition, you can pass a custom failure message as the fourth argument, which overrides
+    # the AccessDenied default when raised by "authorize!". This is useful when there are multiple
+    # reasons that an an ability may be disallowed, and you would like to provide more specific
+    # feedback to the user.
+    #
+    #   can [:publish, :reject], Article
+    #   cannot :publish, Article, :is_rejected?=>true, "You cannot publish a rejected article."
+    #   cannot :reject, Article, :is_published?=>true, "You cannot reject a published article."
+    #
+    # Custom failure messages can be used with blocks, too. If no conditions are passed, you can
+    # conveniently omit the third argument instead of passing nil.
+    #
+    #   can :create, Comment
+    #
+    #   cannot :create, Comment, "You cannot comment on a pending article." do |comment|
+    #     comment.article.is_pending?
+    #   end
+    #
+    #   cannot :create, Comment, "You cannot comment on a rejected article." do |comment|
+    #     comment.article.is_rejected?
+    #   end
+    #
     def cannot(action = nil, subject = nil, conditions = nil, message = nil, &block)
       if message.nil? and conditions.kind_of?(String)
         message = conditions
